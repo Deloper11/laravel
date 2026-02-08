@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>etatourtravel.com | Flight Booking & Admin System</title>
+    
+    <!-- External Assets -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    
+    <!-- Main Styles -->
+    <style>
+        :root {
+            --primary: #376b8d;
+            --secondary: #4a6491;
+            --accent: #4caf50;
+            --dark: #1a252f;
+            --light: #f8f9fa;
+            --admin-bg: #f4f7f6;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: #f0f2f5;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .navbar-brand {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background-color: var(--dark) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .navbar-brand img { 
+            height: 35px; 
+            margin-right: 10px; 
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+                        url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 120px 0 160px;
+            text-align: center;
+        }
+
+        /* Search Container */
+        .search-wrapper {
+            margin-top: -80px;
+            position: relative;
+            z-index: 10;
+        }
+        .search-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        /* Component Styles */
+        .flight-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            transition: var(--transition);
+        }
+        .flight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-scheduled { background: #e3f2fd; color: #1565c0; }
+        .status-departed { background: #fff3e0; color: #ef6c00; }
+        .status-arrived { background: #e8f5e9; color: #2e7d32; }
+        .status-issue { background: #ffebee; color: #c62828; }
+        .status-delayed { background: #fff3e0; color: #f57c00; }
+
+        /* Admin Dashboard Layout */
+        .admin-sidebar {
+            background: var(--dark);
+            min-height: calc(100vh - 56px);
+            color: white;
+            padding-top: 20px;
+        }
+        .admin-nav-link {
+            color: #bdc3c7;
+            padding: 12px 20px;
+            display: block;
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+        .admin-nav-link:hover, .admin-nav-link.active {
+            color: white;
+            background: rgba(255,255,255,0.05);
+            border-left-color: var(--primary);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Booking Process */
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0 40px;
+            position: relative;
+        }
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            background: white;
+            padding: 10px;
+        }
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .step.active .step-number {
+            background: var(--primary);
+            color: white;
+        }
+        .step.completed .step-number {
+            background: #4caf50;
+            color: white;
+        }
+
+        /* E-Ticket Styles (from e_ticket.php) */
+        .ticket-container {
+            border: 2px solid #424242;
+            border-radius: 10px;
+            overflow: hidden;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .ticket-header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+        }
+        .ticket-body {
+            padding: 30px;
+            background: white;
+        }
+        .ticket-field {
+            margin-bottom: 15px;
+        }
+        .ticket-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        .ticket-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .ticket-qr {
+            width: 150px;
+            height: 150px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            border: 1px dashed #ccc;
+        }
+
+        /* Feedback Form Styles (from feedback.php) */
+        .feedback-container {
+            background: rgba(3, 3, 3, 0.57);
+            padding: 40px;
+            border-radius: 10px;
+            color: white;
+        }
+        .rating-stars {
+            font-size: 30px;
+            color: #ccc;
+            cursor: pointer;
+        }
+        .rating-stars .active {
+            color: #ffc107;
+        }
+
+        /* Login/Register Forms (from login.php & register.php) */
+        .auth-form {
+            background: rgba(255,255,255,0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .form-animate-label {
+            transition: all 0.3s ease;
+            transform: translateY(-25px);
+            font-size: 12px;
+            color: var(--primary);
+        }
+
+        /* Utility */
+        .cursor-pointer { cursor: pointer; }
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        @media print {
+            .navbar, footer, .no-print { display: none !important; }
+            .ticket-container { 
+                box-shadow: none; 
+                border: 1px solid #000;
+                margin: 0;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="javascript:void(0)" onclick="app.router.go('home')">
+                <img src="https://cdn-icons-png.flaticon.com/512/824/824100.png" alt="Logo">
+                <span>ETA Tour & Travel Agency</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto" id="main-nav-links">
+                    <!-- Dynamic Links -->
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- App Container -->
+    <div id="view-port">
+        <!-- Content injected here -->
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5 class="Montserrat font-bold mb-3">ETA Tour & Travel Agency</h5>
+                    <p class="text-secondary">Simplifying air travel with cutting-edge booking technology. Trusted by millions of travelers worldwide.</p>
+                </div>
+                <div class="col-md-2">
+                    <h6>Explore</h6>
+                    <ul class="list-unstyled text-secondary">
+                        <li><a href="javascript:void(0)" onclick="app.router.go('home')" class="text-decoration-none text-secondary">Flights</a></li>
+                        <li><a href="javascript:void(0)" onclick="app.router.go('feedback')" class="text-decoration-none text-secondary">Feedback</a></li>
+                        <li><a href="javascript:void(0)" class="text-decoration-none text-secondary">Destinations</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Support</h6>
+                    <ul class="list-unstyled text-secondary">
+                        <li><i class="fas fa-headset me-2"></i> 24/7 Help Center: +8809658001016</li>
+                        <li><i class="fas fa-envelope me-2"></i> sales@etatourtravel.com</li>
+                    </ul>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    <button class="btn btn-outline-light btn-sm mb-3" onclick="app.router.go('admin-login')">
+                        <i class="fas fa-user-shield me-2"></i>Staff Portal
+                    </button>
+                    <p class="small text-secondary">© 2026 ETA Tour & Travel Agency. Developed by etatourtravel.com.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Templates (Hidden from UI) -->
+    <div id="templates" class="hidden">
+        
+        <!-- Home Page (index.php) -->
+        <div id="tpl-home">
+            <section class="hero-section">
+                <div class="container">
+                    <h1 class="display-3 fw-bold mb-3">Your Journey Starts Here</h1>
+                    <p class="lead mb-0">Explore new horizons with affordable and reliable flight options.</p>
+                </div>
+            </section>
+            
+            <div class="container search-wrapper">
+                <div class="search-card">
+                    <div class="d-flex gap-3 mb-4">
+                        <button class="btn btn-primary rounded-pill" onclick="app.setTripType('one-way')">One Way</button>
+                        <button class="btn btn-outline-secondary rounded-pill" onclick="app.setTripType('round-trip')">Round Trip</button>
+                    </div>
+                    <form id="search-form" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Departure City</label>
+                            <select class="form-select" id="search-from" required>
+                                <option value="">Select City</option>
+                                <option value="DAC">Dhaka (DAC)</option>
+                                <option value="CGP">Chittagong (CGP)</option>
+                                <option value="ZYL">Sylhet (ZYL)</option>
+                                <option value="CXB">Cox's Bazar (CXB)</option>
+                                <option value="JSR">Jessore (JSR)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Destination</label>
+                            <select class="form-select" id="search-to" required>
+                                <option value="">Select City</option>
+                                <option value="DAC">Dhaka (DAC)</option>
+                                <option value="CGP">Chittagong (CGP)</option>
+                                <option value="ZYL">Sylhet (ZYL)</option>
+                                <option value="CXB">Cox's Bazar (CXB)</option>
+                                <option value="JSR">Jessore (JSR)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold">Depart Date</label>
+                            <input type="date" class="form-control" id="search-depart-date" required>
+                        </div>
+                        <div class="col-md-2" id="return-date-container" style="display: none;">
+                            <label class="form-label small fw-bold">Return Date</label>
+                            <input type="date" class="form-control" id="search-return-date">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                                <i class="fas fa-search me-2"></i>Search Flights
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="container py-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Available Flights</h3>
+                    <span class="text-muted" id="flight-count"></span>
+                </div>
+                <div id="flight-results-container" class="row">
+                    <!-- Flight results will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Flight Booking (book_flight.php) -->
+        <div id="tpl-booking">
+            <div class="container py-5">
+                <div class="step-indicator">
+                    <div class="step active">
+                        <div class="step-number">1</div>
+                        <div>Select Flight</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div>Passenger Details</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div>Payment</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div>Confirmation</div>
+                    </div>
+                </div>
+
+                <div id="booking-steps-container">
+                    <!-- Steps will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Passenger Form (pass_form.php) -->
+        <div id="tpl-passenger-form">
+            <div class="container py-5">
+                <h1 class="text-center mb-4">Passenger Details</h1>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <form id="passenger-form">
+                                    <div id="passenger-fields-container">
+                                        <!-- Passenger fields will be generated here -->
+                                    </div>
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                                            Continue to Payment <i class="fas fa-arrow-right ms-2"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Page (payment.php) -->
+        <div id="tpl-payment">
+            <div class="container py-5">
+                <h1 class="text-center mb-4">Payment</h1>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h5 class="mb-4">Select Payment Method</h5>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <div class="payment-method-card cursor-pointer" onclick="app.selectPayment('credit-card')">
+                                            <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
+                                            <h6>Credit Card</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="payment-method-card cursor-pointer" onclick="app.selectPayment('bkash')">
+                                            <i class="fas fa-mobile-alt fa-3x text-success mb-3"></i>
+                                            <h6>bKash</h6>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="payment-method-card cursor-pointer" onclick="app.selectPayment('bank')">
+                                            <i class="fas fa-university fa-3x text-info mb-3"></i>
+                                            <h6>Bank Transfer</h6>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="credit-card-form" class="hidden">
+                                    <form id="card-payment-form">
+                                        <div class="mb-3">
+                                            <label class="form-label">Card Number</label>
+                                            <input type="text" class="form-control" placeholder="1234 5678 9012 3456" required>
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Expiry Date</label>
+                                                <input type="text" class="form-control" placeholder="MM/YY" required>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">CVV</label>
+                                                <input type="password" class="form-control" placeholder="123" required>
+                                            </div>
+                                        </div>
+                                        <div class="text-center mt-4">
+                                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                                Pay Now <i class="fas fa-lock ms-2"></i>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div id="bkash-form" class="hidden">
+                                    <form id="mobile-payment-form">
+                                        <div class="mb-3">
+                                            <label class="form-label">bKash Number</label>
+                                            <input type="text" class="form-control" placeholder="01XXXXXXXXX" required>
+                                        </div>
+                                        <div class="text-center mt-4">
+                                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                                Pay with bKash
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- E-Ticket (e_ticket.php) -->
+        <div id="tpl-eticket">
+            <div class="container py-5">
+                <div class="ticket-container">
+                    <div class="ticket-header text-center">
+                        <h3 class="mb-0">E-TICKET</h3>
+                        <p class="mb-0">Online Flight Booking System</p>
+                    </div>
+                    <div class="ticket-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Passenger Name</div>
+                                    <div class="ticket-value" id="ticket-passenger-name"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Booking Reference</div>
+                                    <div class="ticket-value" id="ticket-booking-ref"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Airline</div>
+                                    <div class="ticket-value" id="ticket-airline"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Flight Number</div>
+                                    <div class="ticket-value" id="ticket-flight-number"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Class</div>
+                                    <div class="ticket-value" id="ticket-class"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Departure</div>
+                                    <div class="ticket-value" id="ticket-departure"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Arrival</div>
+                                    <div class="ticket-value" id="ticket-arrival"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Date</div>
+                                    <div class="ticket-value" id="ticket-date"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Time</div>
+                                    <div class="ticket-value" id="ticket-time"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="ticket-field">
+                                    <div class="ticket-label">Seat</div>
+                                    <div class="ticket-value" id="ticket-seat"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ticket-qr text-center">
+                            <div>
+                                <i class="fas fa-qrcode fa-3x text-muted"></i>
+                                <p class="mt-2 small">Scan at airport</p>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4 no-print">
+                            <button class="btn btn-primary me-2" onclick="window.print()">
+                                <i class="fas fa-print me-2"></i>Print Ticket
+                            </button>
+                            <button class="btn btn-success" onclick="app.router.go('my-flights')">
+                                <i class="fas fa-list me-2"></i>My Bookings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Page (login.php) -->
+        <div id="tpl-login">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-5">
+                        <div class="auth-form">
+                            <h2 class="text-center mb-4">Login</h2>
+                            <form id="login-form">
+                                <div class="mb-3">
+                                    <label class="form-label">Email or Username</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="login-email" required>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                        <input type="password" class="form-control" id="login-password" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <a href="javascript:void(0)" onclick="app.router.go('reset-password')" class="text-decoration-none">
+                                        Forgot Password?
+                                    </a>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                                </button>
+                                <div class="text-center">
+                                    <span class="text-muted">Don't have an account?</span>
+                                    <a href="javascript:void(0)" onclick="app.router.go('register')" class="text-decoration-none ms-1">
+                                        Register here
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Page (register.php) -->
+        <div id="tpl-register">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <div class="auth-form">
+                            <h2 class="text-center mb-4">Create Account</h2>
+                            <form id="register-form">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-control" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Confirm Password</label>
+                                    <input type="password" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                                    <i class="fas fa-user-plus me-2"></i>Register
+                                </button>
+                                <div class="text-center">
+                                    <span class="text-muted">Already have an account?</span>
+                                    <a href="javascript:void(0)" onclick="app.router.go('login')" class="text-decoration-none ms-1">
+                                        Login here
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Flights (my_flights.php) -->
+        <div id="tpl-my-flights">
+            <div class="container py-5">
+                <h1 class="text-center mb-4">My Bookings</h1>
+                <div id="bookings-container">
+                    <!-- Bookings will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Page (feedback.php) -->
+        <div id="tpl-feedback">
+            <div class="container py-5">
+                <h1 class="text-center mb-4 text-white">Customer Feedback</h1>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="feedback-container">
+                            <form id="feedback-form">
+                                <div class="mb-4">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" required>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">What was your first impression when you entered the website?</label>
+                                    <textarea class="form-control" rows="3" required></textarea>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">How did you first hear about us?</label>
+                                    <select class="form-select" required>
+                                        <option value="">Select an option</option>
+                                        <option>Search Engine</option>
+                                        <option>Social Media</option>
+                                        <option>Friend/Relative</option>
+                                        <option>Word of Mouth</option>
+                                        <option>Television</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Is there anything missing on this page?</label>
+                                    <textarea class="form-control" rows="3" required></textarea>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">Rating</label>
+                                    <div class="rating-stars">
+                                        <i class="fas fa-star" onclick="app.setRating(1)"></i>
+                                        <i class="fas fa-star" onclick="app.setRating(2)"></i>
+                                        <i class="fas fa-star" onclick="app.setRating(3)"></i>
+                                        <i class="fas fa-star" onclick="app.setRating(4)"></i>
+                                        <i class="fas fa-star" onclick="app.setRating(5)"></i>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                                        Submit Feedback <i class="fas fa-paper-plane ms-2"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Password (reset-pwd.php) -->
+        <div id="tpl-reset-password">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-5">
+                        <div class="auth-form">
+                            <h2 class="text-center mb-4">Reset Password</h2>
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                An email will be sent to you with instructions on how to reset your password.
+                            </div>
+                            <form id="reset-password-form">
+                                <div class="mb-4">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2">
+                                    Send Reset Link
+                                </button>
+                            </form>
+                            <div class="text-center mt-3">
+                                <a href="javascript:void(0)" onclick="app.router.go('login')" class="text-decoration-none">
+                                    Back to Login
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create New Password (create-new-pwd.php) -->
+        <div id="tpl-new-password">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-5">
+                        <div class="auth-form">
+                            <h2 class="text-center mb-4">Create New Password</h2>
+                            <form id="new-password-form">
+                                <div class="mb-3">
+                                    <label class="form-label">New Password</label>
+                                    <input type="password" class="form-control" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Confirm New Password</label>
+                                    <input type="password" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2">
+                                    Reset Password
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="tpl-admin-dashboard">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-2 p-0 admin-sidebar">
+                        <div class="px-4 mb-4">
+                            <span class="badge bg-primary w-100 py-2">System Admin</span>
+                        </div>
+                        <a href="javascript:void(0)" onclick="app.router.go('admin-dashboard')" class="admin-nav-link active">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                        <a href="javascript:void(0)" onclick="app.router.go('admin-flights')" class="admin-nav-link">
+                            <i class="fas fa-plane"></i> Manage Flights
+                        </a>
+                        <a href="javascript:void(0)" onclick="app.router.go('admin-bookings')" class="admin-nav-link">
+                            <i class="fas fa-book"></i> Passenger List
+                        </a>
+                        <a href="javascript:void(0)" onclick="app.router.go('admin-feedback')" class="admin-nav-link">
+                            <i class="fas fa-comments"></i> Feedback
+                        </a>
+                    </div>
+                    <div class="col-lg-10 p-4">
+                        <h2 class="mb-4">Operational Overview</h2>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-3">
+                                <div class="stat-card">
+                                    <i class="fas fa-users text-primary fa-2x mb-2"></i>
+                                    <div class="h3 mb-0" id="admin-total-passengers">0</div>
+                                    <small class="text-muted">Total Passengers</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card" style="border-left-color: #2ecc71">
+                                    <i class="fas fa-plane-departure text-success fa-2x mb-2"></i>
+                                    <div class="h3 mb-0" id="admin-total-flights">0</div>
+                                    <small class="text-muted">Active Flights</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card" style="border-left-color: #f1c40f">
+                                    <i class="fas fa-ticket-alt text-warning fa-2x mb-2"></i>
+                                    <div class="h3 mb-0" id="admin-total-bookings">0</div>
+                                    <small class="text-muted">Total Bookings</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="stat-card" style="border-left-color: #e74c3c">
+                                    <i class="fas fa-money-bill-wave text-danger fa-2x mb-2"></i>
+                                    <div class="h3 mb-0" id="admin-total-revenue">0</div>
+                                    <small class="text-muted">Total Revenue</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Recent Flight Operations</h5>
+                                <button class="btn btn-primary btn-sm" onclick="app.router.go('admin-flights')">
+                                    <i class="fas fa-plus me-1"></i> Add Flight
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Flight #</th>
+                                                <th>Airline</th>
+                                                <th>Route</th>
+                                                <th>Departure</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-recent-flights"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Login -->
+        <div id="tpl-admin-login">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-4">
+                        <div class="auth-form border border-primary">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-user-shield fa-3x text-primary"></i>
+                                <h3 class="mt-3">Admin Portal</h3>
+                            </div>
+                            <form id="admin-login-form">
+                                <div class="mb-3">
+                                    <label class="form-label">Admin ID</label>
+                                    <input type="text" class="form-control" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100 py-2">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login as Admin
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripting -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    
+    <script>
+        // =============== APPLICATION CORE ===============
+        const app = {
+            // Data storage
+            data: {
+                flights: [
+                    { id: 1, airline: 'Biman Bangladesh Airlines', flightNo: 'BG 101', from: 'DAC', to: 'CGP', departure: '2024-03-15 08:00', arrival: '2024-03-15 09:00', price: 8500, class: 'Economy', status: 'scheduled' },
+                    { id: 2, airline: 'US-Bangla Airlines', flightNo: 'BS 202', from: 'DAC', to: 'ZYL', departure: '2024-03-15 10:30', arrival: '2024-03-15 11:30', price: 9200, class: 'Business', status: 'scheduled' },
+                    { id: 3, airline: 'Novoair', flightNo: 'VQ 303', from: 'CGP', to: 'CXB', departure: '2024-03-16 07:15', arrival: '2024-03-16 07:45', price: 6500, class: 'Economy', status: 'departed' },
+                    { id: 4, airline: 'Air Astra', flightNo: '2A 404', from: 'DAC', to: 'JSR', departure: '2024-03-16 14:20', arrival: '2024-03-16 15:10', price: 7500, class: 'Economy', status: 'scheduled' },
+                    { id: 5, airline: 'Emirates', flightNo: 'EK 723', from: 'DXB', to: 'JFK', departure: '2024-03-17 02:30', arrival: '2024-03-17 08:15', price: 285500, class: 'First', status: 'scheduled' }
+                ],
+                bookings: [],
+                users: [
+                    { id: 1, email: 'user@test.com', password: 'password', name: 'John Doe' }
+                ],
+                admin: { username: 'admin', password: 'admin123' },
+                session: { user: null, isAdmin: false, bookingData: null },
+                feedback: [],
+                tripType: 'one-way'
+            },
+
+            // Save to localStorage
+            save() {
+                localStorage.setItem('etatourtravel', JSON.stringify(this.data));
+            },
+
+            // Load from localStorage
+            load() {
+                const saved = localStorage.getItem('etatourtravel');
+                if (saved) {
+                    this.data = JSON.parse(saved);
+                }
+            },
+
+            // Notifications
+            notify(message, type = 'info') {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+                alert.style.zIndex = '9999';
+                alert.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(alert);
+                setTimeout(() => alert.remove(), 4000);
+            },
+
+            // =============== ROUTER ===============
+            router: {
+                current: 'home',
+                go(page, params = null) {
+                    this.current = page;
+                    app.render(page, params);
+                    window.scrollTo(0, 0);
+                }
+            },
+
+            // =============== RENDER FUNCTIONS ===============
+            render(page, params) {
+                const $vp = $('#view-port');
+                $vp.empty().removeClass('fade-in').addClass('fade-in');
+                this.updateNavigation();
+
+                switch(page) {
+                    case 'home':
+                        this.renderHome($vp);
+                        break;
+                    case 'booking':
+                        this.renderBooking($vp, params);
+                        break;
+                    case 'passenger-form':
+                        this.renderPassengerForm($vp, params);
+                        break;
+                    case 'payment':
+                        this.renderPayment($vp, params);
+                        break;
+                    case 'eticket':
+                        this.renderETicket($vp, params);
+                        break;
+                    case 'login':
+                        this.renderLogin($vp);
+                        break;
+                    case 'register':
+                        this.renderRegister($vp);
+                        break;
+                    case 'my-flights':
+                        this.renderMyFlights($vp);
+                        break;
+                    case 'feedback':
+                        this.renderFeedback($vp);
+                        break;
+                    case 'reset-password':
+                        this.renderResetPassword($vp);
+                        break;
+                    case 'new-password':
+                        this.renderNewPassword($vp);
+                        break;
+                    case 'admin-dashboard':
+                        if (!this.data.session.isAdmin) return this.router.go('admin-login');
+                        this.renderAdminDashboard($vp);
+                        break;
+                    case 'admin-login':
+                        this.renderAdminLogin($vp);
+                        break;
+                }
+            },
+
+            updateNavigation() {
+                const { user, isAdmin } = this.data.session;
+                let links = '';
+
+                if (isAdmin) {
+                    links = `
+                        <li class="nav-item"><a class="nav-link text-warning" href="javascript:void(0)" onclick="app.router.go('admin-dashboard')"><i class="fas fa-lock me-1"></i>Admin</a></li>
+                        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" onclick="app.logout()">Logout</a></li>
+                    `;
+                } else if (user) {
+                    links = `
+                        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" onclick="app.router.go('home')">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" onclick="app.router.go('my-flights')">My Flights</a></li>
+                        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" onclick="app.router.go('feedback')">Feedback</a></li>
+                        <li class="nav-item"><a class="nav-link fw-bold text-info" href="javascript:void(0)"><i class="fas fa-user-circle me-1"></i>${user.name}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" onclick="app.logout()">Logout</a></li>
+                    `;
+                } else {
+                    links = `
+                        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" onclick="app.router.go('home')">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" onclick="app.router.go('login')">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="javascript:void(0)" onclick="app.router.go('register')">Register</a></li>
+                    `;
+                }
+
+                $('#main-nav-links').html(links);
+            },
+
+            // =============== PAGE RENDERERS ===============
+            renderHome($vp) {
+                const tpl = $('#tpl-home').clone().contents();
+                $vp.append(tpl);
+
+                // Set default dates
+                const today = new Date().toISOString().split('T')[0];
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                $('#search-depart-date').val(tomorrow.toISOString().split('T')[0]);
+
+                // Flight results
+                this.displayFlights(this.data.flights);
+
+                // Search form
+                $('#search-form').on('submit', (e) => {
+                    e.preventDefault();
+                    const from = $('#search-from').val();
+                    const to = $('#search-to').val();
+                    const departDate = $('#search-depart-date').val();
+                    
+                    if (!from || !to) {
+                        this.notify('Please select departure and destination cities', 'warning');
+                        return;
+                    }
+                    
+                    if (from === to) {
+                        this.notify('Departure and destination cannot be the same', 'danger');
+                        return;
+                    }
+                    
+                    const filtered = this.data.flights.filter(f => 
+                        f.from.includes(from.split(' ')[0]) && f.to.includes(to.split(' ')[0])
+                    );
+                    
+                    this.displayFlights(filtered);
+                    this.notify(`Found ${filtered.length} flights`, 'success');
+                });
+            },
+
+            displayFlights(flights) {
+                const container = $('#flight-results-container');
+                $('#flight-count').text(`${flights.length} flights available`);
+
+                if (flights.length === 0) {
+                    container.html('<div class="col-12 text-center py-5"><i class="fas fa-plane-slash fa-3x text-muted mb-3"></i><h4>No flights found</h4></div>');
+                    return;
+                }
+
+                let html = '';
+                flights.forEach(f => {
+                    html += `
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="flight-card">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="fw-bold text-primary">${f.airline}</span>
+                                    <span class="status-badge status-${f.status}">${f.status}</span>
+                                </div>
+                                <div class="row align-items-center mb-4">
+                                    <div class="col-5">
+                                        <div class="h5 mb-0">${f.from}</div>
+                                        <small class="text-muted">${f.departure.split(' ')[1]}</small>
+                                    </div>
+                                    <div class="col-2 text-center text-muted">
+                                        <i class="fas fa-plane"></i>
+                                    </div>
+                                    <div class="col-5 text-end">
+                                        <div class="h5 mb-0">${f.to}</div>
+                                        <small class="text-muted">${f.arrival.split(' ')[1]}</small>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="text-muted small">Price</span>
+                                        <div class="h4 mb-0 text-success">BDT ${parseInt(f.price).toLocaleString()}</div>
+                                        <small class="text-muted">${f.class} • ${f.flightNo}</small>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm px-4 rounded-pill" onclick="app.bookFlight(${f.id})">Book Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.html(html);
+            },
+
+            bookFlight(flightId) {
+                if (!this.data.session.user) {
+                    this.notify('Please login to book a flight', 'warning');
+                    return this.router.go('login');
+                }
+
+                const flight = this.data.flights.find(f => f.id === flightId);
+                this.data.session.bookingData = { flight };
+                this.save();
+                this.router.go('passenger-form');
+            },
+
+            setTripType(type) {
+                this.data.tripType = type;
+                const oneWayBtn = document.querySelector('.btn-primary.rounded-pill');
+                const roundTripBtn = document.querySelector('.btn-outline-secondary.rounded-pill');
+                
+                if (type === 'one-way') {
+                    oneWayBtn.classList.replace('btn-outline-secondary', 'btn-primary');
+                    roundTripBtn.classList.replace('btn-primary', 'btn-outline-secondary');
+                    $('#return-date-container').hide();
+                } else {
+                    oneWayBtn.classList.replace('btn-primary', 'btn-outline-secondary');
+                    roundTripBtn.classList.replace('btn-outline-secondary', 'btn-primary');
+                    $('#return-date-container').show();
+                }
+            },
+
+            renderPassengerForm($vp, params) {
+                const tpl = $('#tpl-passenger-form').clone().contents();
+                $vp.append(tpl);
+
+                const flight = this.data.session.bookingData?.flight;
+                if (!flight) return this.router.go('home');
+
+                // Generate passenger fields (default 1 passenger)
+                let html = `
+                    <div class="mb-4">
+                        <h5>Flight Details</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>${flight.airline}</strong><br>
+                                        ${flight.flightNo} • ${flight.class}
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <strong>BDT ${parseInt(flight.price).toLocaleString()}</strong><br>
+                                        ${flight.from} → ${flight.to}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h5 class="mb-3">Passenger Information</h5>
+                `;
+
+                for (let i = 1; i <= 1; i++) {
+                    html += `
+                        <div class="passenger-section mb-4 p-3 border rounded">
+                            <h6 class="mb-3">Passenger ${i}</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" class="form-control" name="firstName[]" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Middle Name</label>
+                                    <input type="text" class="form-control" name="middleName[]">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" name="lastName[]" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Contact Number</label>
+                                    <input type="tel" class="form-control" name="contact[]" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" name="dob[]" required>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                $('#passenger-fields-container').html(html);
+
+                $('#passenger-form').on('submit', (e) => {
+                    e.preventDefault();
+                    
+                    // Collect passenger data
+                    const passengers = [];
+                    $('.passenger-section').each(function() {
+                        passengers.push({
+                            firstName: $(this).find('[name="firstName[]"]').val(),
+                            middleName: $(this).find('[name="middleName[]"]').val(),
+                            lastName: $(this).find('[name="lastName[]"]').val(),
+                            contact: $(this).find('[name="contact[]"]').val(),
+                            dob: $(this).find('[name="dob[]"]').val()
+                        });
+                    });
+
+                    this.data.session.bookingData.passengers = passengers;
+                    this.save();
+                    this.router.go('payment');
+                });
+            },
+
+            renderPayment($vp, params) {
+                const tpl = $('#tpl-payment').clone().contents();
+                $vp.append(tpl);
+
+                // Style payment method cards
+                $('.payment-method-card').css({
+                    'border': '2px solid #dee2e6',
+                    'borderRadius': '10px',
+                    'padding': '20px',
+                    'textAlign': 'center',
+                    'cursor': 'pointer',
+                    'transition': 'all 0.3s'
+                }).hover(
+                    function() { $(this).css('borderColor', 'var(--primary)'); },
+                    function() { $(this).css('borderColor', '#dee2e6'); }
+                );
+
+                $('.payment-method-card').click(function() {
+                    $('.payment-method-card').css('borderColor', '#dee2e6');
+                    $(this).css('borderColor', 'var(--primary)');
+                });
+
+                $('#card-payment-form, #mobile-payment-form').on('submit', (e) => {
+                    e.preventDefault();
+                    
+                    // Generate booking
+                    const bookingId = 'BG' + Date.now();
+                    const flight = this.data.session.bookingData.flight;
+                    const passengers = this.data.session.bookingData.passengers;
+                    
+                    const booking = {
+                        id: bookingId,
+                        userId: this.data.session.user.id,
+                        flight: flight,
+                        passengers: passengers,
+                        date: new Date().toISOString(),
+                        total: flight.price,
+                        status: 'confirmed'
+                    };
+                    
+                    this.data.bookings.push(booking);
+                    this.save();
+                    
+                    this.notify('Payment successful! Booking confirmed.', 'success');
+                    this.router.go('eticket', bookingId);
+                });
+            },
+
+            selectPayment(method) {
+                $('#credit-card-form, #bkash-form').addClass('hidden');
+                
+                if (method === 'credit-card') {
+                    $('#credit-card-form').removeClass('hidden');
+                } else if (method === 'bkash') {
+                    $('#bkash-form').removeClass('hidden');
+                }
+            },
+
+            renderETicket($vp, bookingId) {
+                const tpl = $('#tpl-eticket').clone().contents();
+                $vp.append(tpl);
+
+                const booking = this.data.bookings.find(b => b.id === bookingId);
+                if (!booking) return this.router.go('my-flights');
+
+                const passenger = booking.passengers[0];
+                const flight = booking.flight;
+
+                // Populate ticket data
+                $('#ticket-passenger-name').text(`${passenger.firstName} ${passenger.lastName}`);
+                $('#ticket-booking-ref').text(booking.id);
+                $('#ticket-airline').text(flight.airline);
+                $('#ticket-flight-number').text(flight.flightNo);
+                $('#ticket-class').text(flight.class);
+                $('#ticket-departure').text(`${flight.from} Airport`);
+                $('#ticket-arrival').text(`${flight.to} Airport`);
+                $('#ticket-date').text(flight.departure.split(' ')[0]);
+                $('#ticket-time').text(flight.departure.split(' ')[1]);
+                $('#ticket-seat').text(`A${Math.floor(Math.random() * 30) + 1}`);
+            },
+
+            renderLogin($vp) {
+                const tpl = $('#tpl-login').clone().contents();
+                $vp.append(tpl);
+
+                $('#login-form').on('submit', (e) => {
+                    e.preventDefault();
+                    const email = $('#login-email').val();
+                    const password = $('#login-password').val();
+                    
+                    const user = this.data.users.find(u => 
+                        (u.email === email || u.username === email) && u.password === password
+                    );
+                    
+                    if (user) {
+                        this.data.session.user = user;
+                        this.data.session.isAdmin = false;
+                        this.save();
+                        this.notify(`Welcome back, ${user.name}!`, 'success');
+                        this.router.go('home');
+                    } else {
+                        this.notify('Invalid credentials', 'danger');
+                    }
+                });
+            },
+
+            renderRegister($vp) {
+                const tpl = $('#tpl-register').clone().contents();
+                $vp.append(tpl);
+
+                $('#register-form').on('submit', (e) => {
+                    e.preventDefault();
+                    
+                    const newUser = {
+                        id: Date.now(),
+                        email: $('#register-email').val(),
+                        username: $('#register-username').val(),
+                        password: $('#register-password').val(),
+                        name: `${$('#register-firstname').val()} ${$('#register-lastname').val()}`
+                    };
+                    
+                    this.data.users.push(newUser);
+                    this.data.session.user = newUser;
+                    this.save();
+                    
+                    this.notify('Registration successful!', 'success');
+                    this.router.go('home');
+                });
+            },
+
+            renderMyFlights($vp) {
+                const tpl = $('#tpl-my-flights').clone().contents();
+                $vp.append(tpl);
+
+                const userBookings = this.data.bookings.filter(b => b.userId === this.data.session.user?.id);
+                
+                if (userBookings.length === 0) {
+                    $('#bookings-container').html(`
+                        <div class="text-center py-5">
+                            <i class="fas fa-plane-slash fa-3x text-muted mb-3"></i>
+                            <h4>No bookings yet</h4>
+                            <p class="text-muted mb-4">Start your journey by booking a flight</p>
+                            <button class="btn btn-primary" onclick="app.router.go('home')">
+                                <i class="fas fa-search me-2"></i>Search Flights
+                            </button>
+                        </div>
+                    `);
+                    return;
+                }
+
+                let html = '';
+                userBookings.forEach(booking => {
+                    html += `
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-3">
+                                        <h5 class="mb-0">${booking.flight.airline}</h5>
+                                        <small class="text-muted">${booking.flight.flightNo}</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="text-center">
+                                                <div class="fw-bold">${booking.flight.from}</div>
+                                                <small>${booking.flight.departure.split(' ')[1]}</small>
+                                            </div>
+                                            <div class="mx-3">
+                                                <i class="fas fa-arrow-right text-muted"></i>
+                                            </div>
+                                            <div class="text-center">
+                                                <div class="fw-bold">${booking.flight.to}</div>
+                                                <small>${booking.flight.arrival.split(' ')[1]}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-end">
+                                            <div class="fw-bold text-success">BDT ${parseInt(booking.total).toLocaleString()}</div>
+                                            <span class="badge bg-success">${booking.status}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="app.router.go('eticket', '${booking.id}')">
+                                            View Ticket
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                $('#bookings-container').html(html);
+            },
+
+            renderFeedback($vp) {
+                const tpl = $('#tpl-feedback').clone().contents();
+                $vp.append(tpl);
+
+                // Initialize rating stars
+                $('.rating-stars i').click(function() {
+                    const rating = $(this).index() + 1;
+                    $('.rating-stars i').removeClass('active');
+                    for (let i = 0; i < rating; i++) {
+                        $('.rating-stars i').eq(i).addClass('active');
+                    }
+                    app.setRating(rating);
+                });
+
+                $('#feedback-form').on('submit', (e) => {
+                    e.preventDefault();
+                    this.notify('Thank you for your feedback!', 'success');
+                    setTimeout(() => this.router.go('home'), 2000);
+                });
+            },
+
+            setRating(rating) {
+                console.log('Rating set to:', rating);
+                // Implement rating logic
+            },
+
+            renderResetPassword($vp) {
+                const tpl = $('#tpl-reset-password').clone().contents();
+                $vp.append(tpl);
+
+                $('#reset-password-form').on('submit', (e) => {
+                    e.preventDefault();
+                    this.notify('Password reset link sent to your email', 'info');
+                });
+            },
+
+            renderNewPassword($vp) {
+                const tpl = $('#tpl-new-password').clone().contents();
+                $vp.append(tpl);
+            },
+
+            renderAdminDashboard($vp) {
+                const tpl = $('#tpl-admin-dashboard').clone().contents();
+                $vp.append(tpl);
+
+                // Update admin stats
+                $('#admin-total-passengers').text(this.data.bookings.reduce((sum, b) => sum + b.passengers.length, 0));
+                $('#admin-total-flights').text(this.data.flights.length);
+                $('#admin-total-bookings').text(this.data.bookings.length);
+                $('#admin-total-revenue').text('BDT ' + this.data.bookings.reduce((sum, b) => sum + b.total, 0).toLocaleString());
+
+                // Recent flights table
+                const recentFlights = this.data.flights.slice(0, 5);
+                let rows = '';
+                recentFlights.forEach(f => {
+                    rows += `
+                        <tr>
+                            <td>${f.flightNo}</td>
+                            <td>${f.airline}</td>
+                            <td>${f.from} → ${f.to}</td>
+                            <td>${f.departure}</td>
+                            <td><span class="status-badge status-${f.status}">${f.status}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" onclick="app.updateFlightStatus(${f.id}, 'departed')">
+                                    <i class="fas fa-plane-departure"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" onclick="app.updateFlightStatus(${f.id}, 'arrived')">
+                                    <i class="fas fa-plane-arrival"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                $('#admin-recent-flights').html(rows);
+            },
+
+            renderAdminLogin($vp) {
+                const tpl = $('#tpl-admin-login').clone().contents();
+                $vp.append(tpl);
+
+                $('#admin-login-form').on('submit', (e) => {
+                    e.preventDefault();
+                    const username = $('#admin-login-username').val();
+                    const password = $('#admin-login-password').val();
+                    
+                    if (username === this.data.admin.username && password === this.data.admin.password) {
+                        this.data.session.isAdmin = true;
+                        this.save();
+                        this.notify('Admin login successful', 'success');
+                        this.router.go('admin-dashboard');
+                    } else {
+                        this.notify('Invalid admin credentials', 'danger');
+                    }
+                });
+            },
+
+            updateFlightStatus(flightId, status) {
+                const flight = this.data.flights.find(f => f.id === flightId);
+                if (flight) {
+                    flight.status = status;
+                    this.save();
+                    this.notify(`Flight ${flight.flightNo} marked as ${status}`, 'info');
+                    this.renderAdminDashboard($('#view-port'));
+                }
+            },
+
+            logout() {
+                this.data.session.user = null;
+                this.data.session.isAdmin = false;
+                this.save();
+                this.notify('Logged out successfully', 'info');
+                this.router.go('home');
+            },
+
+            // =============== INITIALIZATION ===============
+            init() {
+                this.load();
+                this.render('home');
+                
+                // Initialize form animations
+                $('input').on('focus', function() {
+                    $(this).parent().find('label').addClass('form-animate-label');
+                }).on('blur', function() {
+                    if (!$(this).val()) {
+                        $(this).parent().find('label').removeClass('form-animate-label');
+                    }
+                });
+            }
+        };
+
+        // Start the application
+        $(document).ready(() => app.init());
+    </script>
+</body>
+</html>
